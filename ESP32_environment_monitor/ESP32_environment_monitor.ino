@@ -2,16 +2,18 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include "secrets.h"
+#include <ArduinoJson.h>
 
 const byte DHT_PIN = 18; 
 const byte DHT_TYPE = DHT11; 
 DHT dht(DHT_PIN, DHT_TYPE); 
 
-const char* topic = "test"; 
+const char* topic = "sensors/esp32_1"; 
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+JsonDocument payloadJson; 
 
 void setup_wifi() {
     delay(10);
@@ -22,8 +24,8 @@ void setup_wifi() {
     WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+      delay(500);
+      Serial.print(".");
     }
 
     Serial.println("\nWiFi connected!");
@@ -71,18 +73,17 @@ void loop() {
         return; 
     }
 
-    String payload = "{";
-    payload += "\"temperature\":";
-    payload += temperature;
-    payload += ",";
-    payload += "\"humidity\":";
-    payload += humidity;
-    payload += "}";
+    payloadJson["temperature"] = temperature; 
+    payloadJson["humidity"] = humidity; 
+
+    char payloadStr[128]; 
+    serializeJson(payloadJson, payloadStr); 
 
     Serial.print("Publishing: ");
-    Serial.println(payload);
+    Serial.println(payloadStr);
 
-    client.publish(topic, payload.c_str());
+    client.publish(topic, payloadStr);
+    payloadJson.clear();
 
     delay(5000);
 }

@@ -4,9 +4,9 @@ import json
 from datetime import datetime, UTC
 
 BROKER = "localhost"
-TOPIC = "sensor/#"
+TOPIC = "sensors/#"
 
-conn = sqlite3.connect("sensors.db")
+conn = sqlite3.connect("data.db")
 cursor = conn.cursor()
 
 
