@@ -1,0 +1,30 @@
+<html>
+
+<head>
+    <title>EnvMonitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <h2>ESP32_1</h2>
+
+    <p>Temperature: <span id="temperature"> -- </span> °C</p>
+    <p>Humidity: <span id="humidity"> -- </span> %</p>
+
+    <h2>Raspberry Pi</h2>
+    <p>CPU Temperature: <span id="cpu_temp"> -- </span> °C</p>
+    <p>RAM Usage : <span id="ram_usage"> -- </span> %</p>
+    <p>Disk Usage : <span id="disk_usage"> -- </span>%</p>
+
+
+    <button onclick="loadChart('1h')">Last Hour</button>
+    <button onclick="loadChart('24h')">Last 24h</button>
+    <button onclick="loadChart('7d')">Week</button>
+
+    <canvas id="tempChart"></canvas>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+
+</html>

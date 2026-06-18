@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 import sqlite3
 from datetime import datetime, timedelta
 
@@ -79,85 +79,7 @@ def history():
 
 @app.route("/")
 def home():
-    return """
-        <html>
-        <head> 
-        <title>EnvMonitor</title> 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        </head>
-        <body>
-        <h2>ESP32_1</h2>
-
-        <p>Temperature: <span id="temperature"> -- </span> °C</p>
-        <p>Humidity: <span id="humidity"> -- </span> %</p>
-        
-        <h2>Raspberry Pi</h2>
-        <p>CPU Temperature: <span id="cpu_temp"> -- </span> °C</p>
-        <p>RAM Usage : <span id="ram_usage"> -- </span> %</p>
-        <p>Disk Usage : <span id="disk_usage"> -- </span>%</p>
-
-        <script>
-        async function updateData() {
-            const response = await fetch("/api/latest")
-            const data = await response.json()
-
-            document.getElementById("temperature").innerText = data.esp32_1.temperature
-            document.getElementById("humidity").innerText = data.esp32_1.humidity
-
-            document.getElementById("cpu_temp").innerText = data.pi.cpu_temp
-            document.getElementById("ram_usage").innerText = data.pi.ram_usage
-            document.getElementById("disk_usage").innerText = data.pi.disk_usage
-        }
-
-        updateData();
-        setInterval(updateData, 5000);  
-        </script>
-        
-        <button onclick="loadChart('1h')">Last Hour</button>
-        <button onclick="loadChart('24h')">Last 24h</button>
-        <button onclick="loadChart('7d')">Week</button>
-
-        <canvas id="tempChart"></canvas>
-
-        <script>
-        let chart;
-        let currentPeriod = "24h";
-
-        async function loadChart(period=currentPeriod) {
-            currentPeriod = period; 
-            const res = await fetch(`/api/history?metric=temperature&device=esp32_1&period=${period}`);
-            const json = await res.json();
-
-            const labels = json.data.map(x => x[0]);
-            const values = json.data.map(x => x[1]);
-
-            if (chart) chart.destroy();
-
-            const ctx = document.getElementById("tempChart").getContext("2d");
-
-            chart = new Chart(ctx, {
-                type: "line",
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Temperature",
-                        data: values,
-                        borderWidth: 2,
-                        fill: false
-                    }]
-                }
-            });
-        }
-
-        loadChart("24h");
-        setInterval(() => loadChart(), 10000);
-        </script>
-
-
-
-        </body>
-        </html>
-    """
+    return render_template("index.html")
 
 
 app.run(host="0.0.0.0", port=5000)
