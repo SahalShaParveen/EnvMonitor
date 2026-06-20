@@ -101,6 +101,11 @@ def history():
     }
 
 
+@app.route("/api/config")
+def config():
+    return CONFIG
+
+
 @app.route("/")
 def home():
     return render_template("index.html")

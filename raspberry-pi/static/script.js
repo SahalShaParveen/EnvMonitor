@@ -1,22 +1,62 @@
+let CONFIG;
+
+async function loadConfig() {
+    CONFIG = await fetch("/api/config").then(r => r.json());
+}
+
+
+function buildDashboard() {
+    const dashboard = document.getElementById("dashboard");
+    dashboard.innerHTML = "";
+
+    for (const deviceName in CONFIG.devices) {
+        const device = CONFIG.devices[deviceName];
+
+        const title = document.createElement("h2");
+        title.innerText = deviceName;
+        dashboard.appendChild(title);
+
+        for (const metric of device.metrics) {
+            const row = document.createElement("p");
+
+            const label = document.createElement("span");
+            label.innerText = `${metric}: `;
+
+            const value = document.createElement("span");
+            value.id = `${deviceName}_${metric}`;
+            value.innerText = "--";
+
+            row.appendChild(label);
+            row.appendChild(value);
+
+            dashboard.appendChild(row);
+        }
+    }
+}
+
+
 function displayValue(id, value) {
     document.getElementById(id).innerText =
         value === null ? "N/A" : value;
 }
 
+
 async function updateData() {
-    const response = await fetch("/api/latest")
-    const data = await response.json()
+    const response = await fetch("/api/latest");
+    const data = await response.json();
 
-    displayValue("temperature", data.esp32_1.temperature);
-    displayValue("humidity", data.esp32_1.humidity);
+    for (const deviceName in CONFIG.devices) {
+        const deviceMetrics = CONFIG.devices[deviceName].metrics;
 
-    displayValue("cpu_temp", data.pi.cpu_temp);
-    displayValue("ram_usage", data.pi.ram_usage);
-    displayValue("disk_usage", data.pi.disk_usage);
+        for (const metric of deviceMetrics) {
+            const value = data[deviceName][metric];
+
+            const elementId = `${deviceName}_${metric}`;
+
+            displayValue(elementId, value);
+        }
+    }
 }
-
-updateData();
-setInterval(updateData, 5000);
 
 
 let chart;
@@ -44,8 +84,12 @@ function initChart() {
 }
 
 
+let chartDevice = "esp32_1"
+let chartMetric = "temperature"
+
+
 async function updateChart() {
-    const res = await fetch(`/api/history?metric=temperature&device=esp32_1&period=${currentPeriod}`);
+    const res = await fetch(`/api/history?metric=${chartMetric}&device=${chartDevice}&period=${currentPeriod}`);
     const json = await res.json();
 
     chart.data.datasets[0].data = json.data;
@@ -58,7 +102,14 @@ function setPeriod(period) {
     updateChart();
 }
 
-initChart();
-updateChart("24h");
 
-setInterval(() => updateChart(), 10000);
+(async function start() {
+    await loadConfig();
+    buildDashboard();
+    initChart();
+    updateData();
+    updateChart();
+
+    setInterval(updateData, CONFIG.dashboard.refresh_seconds * 1000);
+    setInterval(() => updateChart(), CONFIG.dashboard.history_refresh_seconds * 1000);
+})();
