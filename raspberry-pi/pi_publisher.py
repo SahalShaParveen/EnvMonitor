@@ -2,9 +2,11 @@ import paho.mqtt.client as mqtt
 import psutil
 import json
 import time
+from config import CONFIG
 
-BROKER = "localhost"
-TOPIC = "sensors/pi"
+BROKER = CONFIG["mqtt"]["broker"]
+PORT = CONFIG["mqtt"]["port"]
+TOPIC = CONFIG["devices"]["pi"]["mqtt_topic"]
 
 TEMPERATURE_PATH = "/sys/devices/virtual/thermal/thermal_zone0/temp"
 
@@ -22,20 +24,25 @@ def on_connect(client, userdata, flags, rc):
 client = mqtt.Client()
 client.on_connect = on_connect
 
-client.connect(BROKER, 1883, 60)
+client.connect(BROKER, PORT, 60)
 client.loop_start()
+
+METRIC_READERS = {
+    "cpu_temp": get_cpu_temp,
+    "ram_usage": lambda: psutil.virtual_memory().percent,
+    "disk_usage": lambda: psutil.disk_usage("/").percent
+}
 
 try:
     while True:
-        payload = {
-            "cpu_temp": get_cpu_temp(),
-            "ram_usage": psutil.virtual_memory().percent,
-            "disk_usage": psutil.disk_usage("/").percent
-        }
+        payload = {}
+
+        for metric in CONFIG["devices"]["pi"]["metrics"]:
+            payload[metric] = METRIC_READERS[metric]()
 
         print("publishing: ", payload)
         client.publish(TOPIC, json.dumps(payload))
-        time.sleep(5)
+        time.sleep(CONFIG["devices"]["pi"]["update_interval"])
 except KeyboardInterrupt:
     print("stopping")
 finally:

@@ -1,4 +1,8 @@
 {
+    "mqtt": {
+        "broker": "localhost",
+        "port": 1883
+    },
     "devices": {
         "esp32_1": {
             "mqtt_topic": "sensors/esp32_1",
