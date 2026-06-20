@@ -1,0 +1,29 @@
+{
+    "devices": {
+        "esp32_1": {
+            "mqtt_topic": "sensors/esp32_1",
+            "metrics": [
+                "temperature",
+                "humidity"
+            ],
+            "update_interval": 5
+        },
+        "pi": {
+            "mqtt_topic": "sensors/pi",
+            "metrics": [
+                "cpu_temp",
+                "ram_usage",
+                "disk_usage"
+            ],
+            "update_interval": 5
+        }
+    },
+    "dashboard": {
+        "refresh_seconds": 5,
+        "history_refresh_seconds": 10,
+        "freshness_seconds": 15
+    },
+    "database": {
+        "filename": "data.db"
+    }
+}
