@@ -1,5 +1,6 @@
+from config import CONFIG
 import sqlite3
-conn = sqlite3.connect("data.db")
+conn = sqlite3.connect(CONFIG["database"]["filename"])
 cursor = conn.cursor()
 
 cursor.execute("""
